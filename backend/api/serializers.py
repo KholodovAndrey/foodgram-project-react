@@ -1,12 +1,9 @@
 from django.db.transaction import atomic
-from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers, exceptions, status
 from rest_framework.validators import UniqueValidator
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from recipes.models import (Ingredient,
-                            Recipe,
-                            RecipeConstructor,
-                            Tag)
+from recipes.models import (Ingredient, Recipe,
+                            RecipeConstructor, Tag)
 from users.models import Follows, User
 from drf_extra_fields.fields import Base64ImageField
 
@@ -55,9 +52,15 @@ class UserCreateSerializer(UserCreateSerializer):
             'first_name',
             'last_name'
         )
+        extra_kwargs = {
+            'first_name': {'required': True},
+            'last_name': {'required': True},
+            'email': {'required': True}
+        }
 
 
 class UserShowSerializer(UserSerializer):
+    """Сериализатор ___"""
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -75,26 +78,6 @@ class UserShowSerializer(UserSerializer):
             return Follows.objects.filter(user=self.context['request'].user,
                                           author=obj).exists()
         return False
-
-
-class SetPasswordSerializer(serializers.Serializer):
-    """Сериализатор смены пароля."""
-
-    new_pass = serializers.CharField(required=True)
-    current_pass = serializers.CharField(required=True)
-
-    def validate(self, obj):
-        try:
-            validate_password(obj['new_password'])
-        except exceptions.ValidationError as e:
-            raise serializers.ValidationError(
-                {'new_password': list(e.messages)}
-            )
-        return super().validate(obj)
-
-    class Meta:
-        model = User
-        fields = "__all__"
 
 
 class TagsSerializer(serializers.ModelSerializer):
@@ -207,7 +190,7 @@ class RecipeShowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        exclude = ('pub_date')
+        fields = '__all__'
 
 
 class IngredientSerializer(serializers.ModelSerializer):

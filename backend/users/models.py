@@ -1,3 +1,4 @@
+from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -7,28 +8,32 @@ class User(AbstractUser):
 
     firstname = models.CharField(
         verbose_name='Имя',
-        max_length=100,
+        max_length=150,
         unique=False,
         help_text='Введите имя'
     )
 
     lastname = models.CharField(
         verbose_name='Фамилия',
-        max_length=100,
+        max_length=150,
         unique=False,
         help_text='Введите фамилию',
     )
 
     username = models.CharField(
         verbose_name='Логин',
-        max_length=100,
+        max_length=150,
         unique=True,
         help_text='Введите имя пользователя',
+        validators=[RegexValidator(
+                                r'^[\w.@+-]+\z$',
+                                message='Неверный формат поля'
+                            )],
     )
 
     email = models.EmailField(
         verbose_name='Эл. почта',
-        max_length=150,
+        max_length=254,
         unique=True,
         help_text='Введите эл. почту',
         null=False,

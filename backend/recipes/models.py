@@ -1,8 +1,7 @@
+from colorfield.fields import ColorField
 from django.db import models
 
 from users.models import User
-
-from recipes.validators import ColorValidator
 
 
 class Tag(models.Model):
@@ -14,13 +13,7 @@ class Tag(models.Model):
         verbose_name='Название тега',
         help_text='Введите название тега'
     )
-    color = models.CharField(
-        max_length=200,
-        unique=True,
-        verbose_name='Цвет в HEX',
-        help_text='Введите цвет тега в виде HEX-кода',
-        validators=[ColorValidator]
-    )
+    color = ColorField(default='#FF0000')
     slug = models.SlugField(
         verbose_name='Уникальный слаг',
         max_length=200,
@@ -135,7 +128,7 @@ class RecipeConstructor(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='Добавить',
+        related_name='add',
         verbose_name='Ингредиент',
         help_text='Ингредиент',
     )
