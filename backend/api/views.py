@@ -45,8 +45,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
 
-    @action(["post"], detail=False
-            )
+    @action(["post"], detail=False)
     def set_password(self, request, *args, **kwargs):
         user = self.request.user
         serializer = SetPasswordSerializer(data=request.data)
