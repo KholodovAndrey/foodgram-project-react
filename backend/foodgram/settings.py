@@ -123,3 +123,5 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+DATE_TIME_FORMAT = '%Y-%m-%dT%H:%M:'
