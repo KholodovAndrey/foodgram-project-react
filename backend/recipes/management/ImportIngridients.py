@@ -1,4 +1,4 @@
-import csv
+from csv import DictReader
 
 from django.core.management.base import BaseCommand
 
@@ -15,10 +15,11 @@ class Command(BaseCommand):
         header = ['name', 'measurement_unit']
 
         self.stdout.write('Загрузка данных')
-        file = csv.DictReader(
+        file = DictReader(
             open('data/ingredients.csv', encoding='utf-8'),
             fieldnames=header
         )
+
         for row in file:
             data = Ingredient(
                 name=row['name'],

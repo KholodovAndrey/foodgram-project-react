@@ -6,7 +6,7 @@ SECRET_KEY = 'django-insecure-wgkkc9=yjbsy0^)s%i$mnhhd68k901_!_=9&%$6(&&+*_r82ei
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 AUTH_USER_MODEL = 'users.User'
 

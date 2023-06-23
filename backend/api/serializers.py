@@ -60,7 +60,8 @@ class UserCreateSerializer(UserCreateSerializer):
 
 
 class UserShowSerializer(UserSerializer):
-    """Сериализатор ___"""
+    """Сериализатор отобрашения пользвателя."""
+
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -107,6 +108,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 class FollowedSerializer(serializers.ModelSerializer):
     """Сериализатор подписки."""
+
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
@@ -204,6 +206,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     """Сериализатор создания рецептов."""
+
     image = Base64ImageField()
     author = UserShowSerializer(read_only=True)
     tags = serializers.PrimaryKeyRelatedField(many=True,
@@ -212,7 +215,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        exclude = ('pub_date')
+        exclude = ('pub_date',)
 
     def create_ingredients(self, recipe, ingredients):
         RecipeConstructor.objects.bulk_create(
