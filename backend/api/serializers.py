@@ -171,7 +171,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientCreateSerializer(serializers.ModelSerializer):
-    """Сериализатор создания ингридиента."""
+    """Сериализатор ингридиента для создания рецепта."""
 
     id = serializers.IntegerField()
 
