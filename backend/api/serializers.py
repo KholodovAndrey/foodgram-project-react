@@ -4,7 +4,7 @@ from rest_framework.validators import UniqueValidator
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from recipes.models import (Ingredient, Recipe,
                             RecipeConstructor, Tag)
-from users.models import Follows, User
+from users.models import Subscriptions, User
 from drf_extra_fields.fields import Base64ImageField
 
 
@@ -27,7 +27,7 @@ class UserSerializer(UserSerializer):
     def get_is_follower(self, obj):
         if (self.context.get('request')
            and not self.context['request'].user.is_anonymous):
-            return Follows.objects.filter(
+            return Subscriptions.objects.filter(
                                         user=self.context['request'].user,
                                         author=obj
                                     ).exists()
@@ -76,8 +76,10 @@ class UserShowSerializer(UserSerializer):
     def get_is_subscribed(self, obj):
         if (self.context.get('request')
            and not self.context['request'].user.is_anonymous):
-            return Follows.objects.filter(user=self.context['request'].user,
-                                          author=obj).exists()
+            return Subscriptions.objects.filter(
+                                          user=self.context['request'].user,
+                                          author=obj
+                                        ).exists()
         return False
 
 
@@ -128,7 +130,7 @@ class FollowedSerializer(serializers.ModelSerializer):
     def validate(self, data):
         author = self.instance
         user = self.context.get('request').user
-        if Follows.objects.filter(user=user, author=author).exists():
+        if Subscriptions.objects.filter(user=user, author=author).exists():
             raise exceptions.ValidationError(
                 detail='Уже подписаны!',
                 code=status.HTTP_400_BAD_REQUEST
@@ -143,8 +145,10 @@ class FollowedSerializer(serializers.ModelSerializer):
     def get_is_followed(self, obj):
         return (
             self.context.get('request').user.is_authenticated
-            and Follows.objects.filter(user=self.context['request'].user,
-                                       author=obj).exists()
+            and Subscriptions.objects.filter(
+                                             user=self.context['request'].user,
+                                             author=obj
+                                            ).exists()
         )
 
     def get_recipes_count(self, obj):

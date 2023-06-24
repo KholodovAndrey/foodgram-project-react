@@ -6,6 +6,25 @@ from django.db import models
 class User(AbstractUser):
     """Модель пользователя."""
 
+    email = models.EmailField(
+        verbose_name='Адрес электронной почты',
+        max_length=254,
+        unique=True,
+        help_text='Введите эл. почту',
+        null=False,
+    )
+
+    username = models.CharField(
+        verbose_name='Имя пользователя',
+        max_length=150,
+        unique=True,
+        help_text='Введите уникальный юзернейм',
+        validators=[RegexValidator(
+                                r'^[\w.@+-]+\z$',
+                                message='Неверный формат поля'
+                            )],
+    )
+
     firstname = models.CharField(
         verbose_name='Имя',
         max_length=150,
@@ -20,25 +39,6 @@ class User(AbstractUser):
         help_text='Введите фамилию',
     )
 
-    username = models.CharField(
-        verbose_name='Логин',
-        max_length=150,
-        unique=True,
-        help_text='Введите имя пользователя',
-        validators=[RegexValidator(
-                                r'^[\w.@+-]+\z$',
-                                message='Неверный формат поля'
-                            )],
-    )
-
-    email = models.EmailField(
-        verbose_name='Эл. почта',
-        max_length=254,
-        unique=True,
-        help_text='Введите эл. почту',
-        null=False,
-    )
-
     class Meta:
         ordering = ('username',)
         verbose_name = 'Пользователь'
@@ -48,7 +48,7 @@ class User(AbstractUser):
         return self.username
 
 
-class Follows(models.Model):
+class Subscriptions(models.Model):
     """Модель подписки."""
 
     user = models.ForeignKey(

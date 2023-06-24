@@ -14,7 +14,7 @@ from django.conf import settings
 
 from recipes.models import (Top, Ingredient, Recipe,
                             RecipeConstructor, Ingridient_list, Tag)
-from users.models import Follows, User
+from users.models import Subscriptions, User
 from .serializers import UserCreateSerializer
 from .filters import RecipeFilter, IngredientSearchFilter
 from .permissions import IsAuthorOrReadOnly
@@ -83,12 +83,12 @@ class CustomUserViewSet(viewsets.ModelViewSet):
                                             data=request.data,
                                             context={"request": request})
             serializer.is_valid(raise_exception=True)
-            Follows.objects.create(user=request.user, author=author)
+            Subscriptions.objects.create(user=request.user, author=author)
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            get_object_or_404(Follows, user=request.user,
+            get_object_or_404(Subscriptions, user=request.user,
                               author=author).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 

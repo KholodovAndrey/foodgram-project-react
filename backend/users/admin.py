@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Follows, User
+from .models import Subscriptions, User
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -33,7 +33,7 @@ class UserAdmin(admin.ModelAdmin):
     )
 
 
-class FollowsAdmin(admin.ModelAdmin):
+class SubscriptionsAdmin(admin.ModelAdmin):
     """Администрирование подписок."""
 
     list_display = (
@@ -49,4 +49,4 @@ class FollowsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(User, UserAdmin)
-admin.site.register(Follows, FollowsAdmin)
+admin.site.register(Subscriptions, SubscriptionsAdmin)
