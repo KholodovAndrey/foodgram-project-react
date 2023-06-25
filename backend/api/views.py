@@ -27,8 +27,9 @@ from .serializers import (IngredientSerializer, RecipeCreateSerializer,
 
 class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = CustomPaginator
+    http_method_names = ['get', 'post', 'head', 'delete']
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -45,18 +46,18 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
 
-    @action(["post"], detail=False)
-    def set_password(self, request, *args, **kwargs):
-        user = self.request.user
-        serializer = SetPasswordSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            user.set_password(serializer.validated_data["new_password"])
-            user.save()
-            return Response({"status": "password set"})
-        else:
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+    # @action(["post"], detail=False)
+    # def set_password(self, request, *args, **kwargs):
+    #     user = self.request.user
+    #     serializer = SetPasswordSerializer(data=request.data)
+    #     if serializer.is_valid(raise_exception=True):
+    #         user.set_password(serializer.validated_data["new_password"])
+    #         user.save()
+    #         return Response({"status": "password set"})
+    #     else:
+    #         return Response(
+    #             serializer.errors, status=status.HTTP_400_BAD_REQUEST
+    #         )
 
     @action(detail=False,
             methods=['get'],
