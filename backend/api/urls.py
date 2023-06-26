@@ -3,6 +3,8 @@ from rest_framework.routers import DefaultRouter
 
 from . import views
 
+# python3 manage.py runserver 192.168.156.80:8000
+
 router = DefaultRouter()
 router.register(r'recipes', views.RecipeViewSet, basename='recipes')
 router.register(r'tags', views.TagViewSet, basename='tags')

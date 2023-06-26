@@ -16,13 +16,16 @@ class Command(BaseCommand):
 
         self.stdout.write('Загрузка данных')
         file = DictReader(
-            open('data/ingredients.csv', encoding='utf-8'),
+            open(
+                '/Users/andrew/Dev/foodgram-project-react/data/ingredients.csv',
+                encoding='utf-8'
+            ),
             fieldnames=header
         )
-
         for row in file:
             data = Ingredient(
                 name=row['name'],
                 measurement_unit=row['measurement_unit']
             )
             data.save()
+        self.stdout.write('Загрузка данных завершена')

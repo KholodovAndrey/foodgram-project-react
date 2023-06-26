@@ -27,7 +27,6 @@ from .serializers import (IngredientSerializer, RecipeCreateSerializer,
 
 class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = CustomPaginator
     http_method_names = ['get', 'post', 'head', 'delete']
 
@@ -46,18 +45,20 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data,
                         status=status.HTTP_200_OK)
 
-    # @action(["post"], detail=False)
-    # def set_password(self, request, *args, **kwargs):
-    #     user = self.request.user
-    #     serializer = SetPasswordSerializer(data=request.data)
-    #     if serializer.is_valid(raise_exception=True):
-    #         user.set_password(serializer.validated_data["new_password"])
-    #         user.save()
-    #         return Response({"status": "password set"})
-    #     else:
-    #         return Response(
-    #             serializer.errors, status=status.HTTP_400_BAD_REQUEST
-    #         )
+    @action(["post"], detail=False, permission_classes=(IsAuthenticated,))
+    def set_password(self, request, *args, **kwargs):
+        user = request.user
+        serializer = SetPasswordSerializer(data=request.data,
+                                           context={'request': request}
+                                           )
+        if serializer.is_valid(raise_exception=True):
+            user.set_password(serializer.validated_data["new_password"])
+            user.save()
+            return Response({"status": "password set"})
+        else:
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
 
     @action(detail=False,
             methods=['get'],
@@ -113,7 +114,6 @@ class IngredientViewSet(viewsets.ModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     pagination_class = CustomPaginator
-    permission_classes = (IsAuthorOrReadOnly, )
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
 
@@ -121,6 +121,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return RecipeShowSerializer
         return RecipeCreateSerializer
+
+    @action(detail=True,
+            methods=['get'],
+            )
+    def get_detail_recipes(self, **kwargs):
+        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
+        return Response(RecipeShowSerializer(recipe, many=False),
+                        status=status.HTTP_201_CREATED)
 
     @action(detail=True,
             methods=['post', 'delete'],
