@@ -233,7 +233,9 @@ class RecipeResponseSerializer(serializers.ModelSerializer):
             ext = format_image.split('/')[-1]
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             random_number = random.randint(1000, 9999)
-            unique_name = f"{timestamp}_{random_number}_{str(uuid.uuid4())[:8]}"
+            unique_name = (
+                f"{timestamp}_{random_number}_{str(uuid.uuid4())[:8]}"
+            )
             return ContentFile(
                 base64.b64decode(imgstr),
                 name=f"{unique_name}.{ext}"
