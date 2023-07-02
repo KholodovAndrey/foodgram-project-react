@@ -203,13 +203,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if not os.path.exists(path):
             os.makedirs(path)
         file_shopping_carts = open(
-            f'{path}\shoppinglist{request.user.id}.txt', 'w+'
+            f'{path}\\shoppinglist{request.user.id}.txt', 'w+'
         )
         for key, value in data.items():
             file_shopping_carts.write(f'{key} -- {value}\n')
         file_shopping_carts.close()
         return HttpResponse(
-            open(f'{path}\shoppinglist{request.user.id}.txt'),
+            open(f'{path}\\shoppinglist{request.user.id}.txt'),
             content_type='text/plain'
         )
 
@@ -222,7 +222,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 data=request.data,
                 context={
                     'recipe': recipe,
-                    'shopping_card':shopping_card
+                    'shopping_card': shopping_card
                 }
             )
             serializer.is_valid(raise_exception=True)
@@ -234,14 +234,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 data=request.data,
                 context={
                     'recipe': recipe,
-                    'shopping_card':shopping_card
+                    'shopping_card': shopping_card
                 }
             )
             serializer.is_valid(raise_exception=True)
             shopping_card.recipes.remove(recipe)
             return Response(status=status.HTTP_204_NO_CONTENT)
-
-
 
     @action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, pk):

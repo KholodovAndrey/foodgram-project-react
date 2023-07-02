@@ -40,7 +40,7 @@ class TagAdmin(admin.ModelAdmin):
 
 
 @admin.register(IngredientWithQuantity)
-class IngredientAdmin(admin.ModelAdmin):
+class IngredientWithQuantityAdmin(admin.ModelAdmin):
     list_display = ('ingredient', 'amount')
 
 
