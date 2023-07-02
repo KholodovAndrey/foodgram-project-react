@@ -3,8 +3,9 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-# Create your models here.
 class User(AbstractUser):
+    """Модель пользователя."""
+
     first_name = models.CharField(_('first name'), max_length=150, blank=False,
                                   null=False)
     last_name = models.CharField(_('last name'), max_length=150, blank=False,

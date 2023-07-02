@@ -1,10 +1,11 @@
 from django.db import models
 
-# Create your models here.
 from users.models import User
 
 
 class Tag(models.Model):
+    """Модель тега."""
+
     name = models.CharField(max_length=201, blank=False, null=False,
                             unique=True, verbose_name='Name')
     color = models.CharField(max_length=8, blank=False, null=False,
@@ -22,6 +23,8 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
+    """Модель ингридиента."""
+
     name = models.CharField(max_length=201, blank=False, null=False,
                             verbose_name='Name')
     measurement_unit = models.CharField(max_length=201, blank=False,
@@ -38,6 +41,8 @@ class Ingredient(models.Model):
 
 
 class IngredientWithQuantity(models.Model):
+    """Модель количества ингридиента."""
+
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
                                    blank=False, null=False,
                                    verbose_name='Ingredient')
@@ -45,7 +50,7 @@ class IngredientWithQuantity(models.Model):
                                  verbose_name='Amount')
 
     def __str__(self):
-        return self.ingredient
+        return f'{self.ingredient.name} - {self.amount}'
 
     class Meta:
         app_label = 'recipes'
@@ -54,6 +59,8 @@ class IngredientWithQuantity(models.Model):
 
 
 class Recipe(models.Model):
+    """Модель рецепта."""
+
     name = models.CharField(max_length=255, blank=False, null=False,
                             verbose_name='Name')
     image = models.ImageField(upload_to='recipe/', blank=False, null=False,
@@ -80,13 +87,15 @@ class Recipe(models.Model):
 
 
 class Favourite(models.Model):
+    """Модель избранного."""
+
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
                                verbose_name='Recipe')
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                              verbose_name='User')
 
     def __str__(self):
-        return self.recipe
+        return self.recipe.name
 
     class Meta:
         app_label = 'recipes'
@@ -95,15 +104,17 @@ class Favourite(models.Model):
 
 
 class Subscription(models.Model):
+    """Модель подписки."""
+
     subscriptions = models.ManyToManyField(User,
                                            related_name='subscriptions',
-                                           blank=False,
+                                           blank=True, null=True,
                                            verbose_name='Subscriptions')
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                              verbose_name='User')
 
     def __str__(self):
-        return self.user
+        return self.user.username
 
     class Meta:
         app_label = 'recipes'
@@ -112,15 +123,17 @@ class Subscription(models.Model):
 
 
 class ShoppingCard(models.Model):
+    """Модель списка покупок."""
+
     recipes = models.ManyToManyField(Recipe,
                                      related_name='recipes',
-                                     blank=False,
+                                     blank=True,
                                      verbose_name='Recipes')
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                              verbose_name='User')
 
     def __str__(self):
-        return self.user
+        return self.user.username
 
     class Meta:
         app_label = 'recipes'

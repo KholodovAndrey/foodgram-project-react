@@ -1,37 +1,75 @@
-from django.contrib.admin import (ModelAdmin, register, TabularInline)
+from django.contrib import admin
 
-from . import models
+# Register your models here.
+from recipes.models import (Recipe, Tag, IngredientWithQuantity, ShoppingCard,
+                            User, Ingredient, Subscription, Favourite)
 
 
-@register(models.Ingredient)
-class IngredientAdmin(ModelAdmin):
-    list_display = ('pk', 'name', 'measurement_unit')
+@admin.register(Recipe)
+class RecipeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'author', 'favorites_score')
+    filter_horizontal = ('ingredients', 'tags',)
+    list_filter = ('name', 'author', 'tags',)
+    search_fields = ('name', 'author', 'tags',)
+
+    def favorites_score(self, instance):
+        return instance.favourite_set.count()
+
+    readonly_fields = ('favorites_score',)
+    favorites_score.short_description = 'В избранном у'
+
+    fieldsets = (
+        ('Рецепт', {
+            'fields': (
+                'name',
+                'image',
+                'text',
+                'cooking_time',
+                'ingredients',
+                'tags',
+                'author',
+                'favorites_score',
+            ),
+        }),
+    )
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'color', 'slug')
+
+
+@admin.register(IngredientWithQuantity)
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = ('ingredient', 'amount')
+
+
+@admin.register(ShoppingCard)
+class ShoppingCardAdmin(admin.ModelAdmin):
+    list_display = ('user',)
+    filter_horizontal = ('recipes',)
+
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'email')
+    list_filter = ('username', 'email',)
+    search_fields = ('username', 'email',)
+
+
+@admin.register(Ingredient)
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = ('name', 'measurement_unit')
     list_filter = ('name',)
     search_fields = ('name',)
 
 
-@register(models.Tag)
-class TagAdmin(ModelAdmin):
-    list_display = ('pk', 'name', 'color', 'slug')
-    list_editable = ('name', 'color', 'slug')
-    search_fields = ('name',)
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('user',)
+    filter_horizontal = ('subscriptions',)
 
 
-@register(models.Recipe)
-class RecipeAdmin(ModelAdmin):
-    list_display = ('pk', 'name', 'author', 'in_favorites')
-    readonly_fields = ('in_favorites',)
-    list_filter = ('name', 'author')
-    save_on_top = True
-
-    def in_favorites(self, obj):
-        return obj.favorite_recipe.count()
-
-    in_favorites.short_description = 'В избранном'
-
-
-@register(models.Favourite)
-class FavoriteAdmin(ModelAdmin):
-    list_display = ('pk', 'user', 'recipe')
-    list_editable = ('user', 'recipe')
-
+@admin.register(Favourite)
+class FavouriteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'recipe')

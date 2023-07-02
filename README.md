@@ -61,14 +61,9 @@
 ## Технологии
 
  **Python 3.9,
- [Django 4](https://docs.djangoproject.com/en/4.0/),
+ [Django 3](https://docs.djangoproject.com/en/3.0/),
  [DjangoRestFramework](https://www.django-rest-framework.org),
- [SimpleJWT](https://django-rest-framework-simplejwt.readthedocs.io/en/latest/),
- [PostgreSQL](https://www.postgresql.org/docs/),
- [Docker](https://docs.docker.com/),
- [Docker Compose](https://docs.docker.com/compose/),
- [Gunicorn](https://docs.gunicorn.org/en/stable/) 20.0,
- [Nginx](https://docs.nginx.com/) 1.21 ([Ru](https://nginx.org/ru/docs/)).**
+ [PostgreSQL](https://www.postgresql.org/docs/)
 
 ## Авторы
 
