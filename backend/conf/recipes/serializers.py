@@ -2,13 +2,14 @@ import base64
 import random
 import uuid
 from datetime import datetime
+
 from django.core.files.base import ContentFile
 from rest_framework import serializers, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 
-from recipes.models import Tag, Ingredient, Recipe, IngredientWithQuantity, \
-    Favourite, ShoppingCard
+from recipes.models import (Tag, Ingredient, Recipe, IngredientWithQuantity,
+                            Favourite, ShoppingCard)
 from users.models import User
 
 

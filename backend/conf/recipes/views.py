@@ -9,15 +9,15 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
-
 from rest_framework.response import Response
 
 from conf.settings import BASE_DIR
 from recipes.filters import IngredientFilter
 from recipes.models import (Tag, Ingredient, Subscription, Recipe, Favourite,
                             ShoppingCard)
-from recipes.permissions import TokenAuthPermission, UserAuthPermission, \
-    RecipePermission
+from recipes.permissions import (TokenAuthPermission,
+                                 UserAuthPermission,
+                                 RecipePermission)
 from users.models import User
 from recipes.serializers import (UserSerializer, UserResponseSerializer,
                                  SetPasswordSerializer, TokenSerializer,
@@ -182,7 +182,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                          pk=request.query_params['author']))
         if request.query_params.get('tags'):
             queryset = queryset.filter(
-                tags__in=request.query_params.getlist('tags'))
+                tags__slug__in=request.query_params.getlist('tags'))
         return queryset
 
     @action(detail=False, methods=['get'],

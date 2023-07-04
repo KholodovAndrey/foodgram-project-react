@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
 from recipes.models import (Recipe, Tag, IngredientWithQuantity, ShoppingCard,
                             User, Ingredient, Subscription, Favourite)
 
