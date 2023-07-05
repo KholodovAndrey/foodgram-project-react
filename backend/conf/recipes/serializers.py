@@ -278,8 +278,12 @@ class RecipeResponseSerializer(serializers.ModelSerializer):
             if errors:
                 raise ValidationError(errors)
             for ingredient in self.initial_data['ingredients']:
-                if (not isinstance(ingredient['amount'], int)
-                        or ingredient['amount'] < 1):
+                try:
+                    int(ingredient['amount'])
+                    if int(ingredient['amount']) < 1:
+                        raise ValueError(
+                            {'error': 'amount must be int and must be more 1'})
+                except Exception:
                     raise ValueError(
                         {'error': 'amount must be int and must be more 1'})
         return data
