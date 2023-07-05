@@ -1,4 +1,5 @@
 # FOODGRAM
+![example workflow](https://github.com/KholodovAndrey/foodgram-project-react/actions/workflows/yamdb_workflow.yml/badge.svg)
 
 ## О проекте
 
