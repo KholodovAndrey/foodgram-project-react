@@ -7,37 +7,37 @@ class Tag(models.Model):
     """Модель тега."""
 
     name = models.CharField(max_length=201, blank=False, null=False,
-                            unique=True, verbose_name='Name')
+                            unique=True, verbose_name='Имя')
     color = models.CharField(max_length=8, blank=False, null=False,
-                             unique=True, verbose_name='Color')
+                             unique=True, verbose_name='Цвет')
     slug = models.SlugField(max_length=201, blank=False, null=False,
-                            unique=True, verbose_name='Slug')
+                            unique=True, verbose_name='Слаг')
 
     def __str__(self):
         return self.name
 
     class Meta:
         app_label = 'recipes'
-        verbose_name = 'Tag'
-        verbose_name_plural = 'Tags'
+        verbose_name = 'Тэг'
+        verbose_name_plural = 'Тэги'
 
 
 class Ingredient(models.Model):
     """Модель ингридиента."""
 
     name = models.CharField(max_length=201, blank=False, null=False,
-                            verbose_name='Name')
+                            verbose_name='Имя')
     measurement_unit = models.CharField(max_length=201, blank=False,
                                         null=False,
-                                        verbose_name='Measurement unit')
+                                        verbose_name='Единица измерения')
 
     def __str__(self):
         return self.name
 
     class Meta:
         app_label = 'recipes'
-        verbose_name = 'Ingredient'
-        verbose_name_plural = 'Ingredients'
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
 
 
 class IngredientWithQuantity(models.Model):
@@ -45,62 +45,71 @@ class IngredientWithQuantity(models.Model):
 
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
                                    blank=False, null=False,
-                                   verbose_name='Ingredient')
-    amount = models.IntegerField(blank=False, null=False,
-                                 verbose_name='Amount')
+                                   related_name='ingredientwithquantity_set',
+                                   verbose_name='Ингредиент')
+    recipe = models.ForeignKey('Recipe', on_delete=models.CASCADE,
+                               blank=False, null=False,
+                               related_name='ingredientwithquantity_set',
+                               verbose_name='Рецепт')
+    amount = models.PositiveSmallIntegerField(blank=False, null=False,
+                                              verbose_name='Количество')
 
     def __str__(self):
         return f'{self.ingredient.name} - {self.amount}'
 
     class Meta:
         app_label = 'recipes'
-        verbose_name = 'IngredientWithQuantity'
-        verbose_name_plural = 'IngredientsWithQuantity'
+        verbose_name = 'ИнгредиентСКоличеством'
+        verbose_name_plural = 'ИнгредиентыСКоличеством'
 
 
 class Recipe(models.Model):
     """Модель рецепта."""
 
     name = models.CharField(max_length=255, blank=False, null=False,
-                            verbose_name='Name')
+                            verbose_name='Имя')
     image = models.ImageField(upload_to='recipe/', blank=False, null=False,
-                              verbose_name='Image')
-    text = models.TextField(blank=False, null=False, verbose_name='Text')
+                              verbose_name='Картинка')
+    text = models.TextField(blank=False, null=False, verbose_name='Текст')
     cooking_time = models.IntegerField(blank=False, null=False,
-                                       verbose_name='Cooking time')
-    ingredients = models.ManyToManyField(IngredientWithQuantity,
+                                       verbose_name='Время готовки')
+    ingredients = models.ManyToManyField(Ingredient,
+                                         through=IngredientWithQuantity,
                                          related_name='ingredients',
                                          blank=False,
-                                         verbose_name='Ingredients')
+                                         verbose_name='Ингредиенты')
     tags = models.ManyToManyField(Tag, related_name='tags',
-                                  blank=False, verbose_name='Tags')
+                                  blank=False, verbose_name='Тэги')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
-                               verbose_name='Author')
+                               related_name='recipe_set',
+                               verbose_name='Автор')
 
     def __str__(self):
         return self.name
 
     class Meta:
         app_label = 'recipes'
-        verbose_name = 'Recipe'
-        verbose_name_plural = 'Recipes'
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
 
 
 class Favourite(models.Model):
     """Модель избранного."""
 
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
-                               verbose_name='Recipe')
+                               related_name='favourite_set',
+                               verbose_name='Рецепт')
     user = models.ForeignKey(User, on_delete=models.CASCADE,
-                             verbose_name='User')
+                             related_name='favourite_set',
+                             verbose_name='Пользователь')
 
     def __str__(self):
         return self.recipe.name
 
     class Meta:
         app_label = 'recipes'
-        verbose_name = 'Favourite'
-        verbose_name_plural = 'Favourites'
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранные'
 
 
 class Subscription(models.Model):
@@ -109,17 +118,22 @@ class Subscription(models.Model):
     subscriptions = models.ManyToManyField(User,
                                            related_name='subscriptions',
                                            blank=True, null=True,
-                                           verbose_name='Subscriptions')
+                                           verbose_name='Подписки')
+    #  M2M, потому что в админке так гораздо удобнее смотреть подписки.
+    #  related_name я так указал как раз потому, что я пытаюсь забрать
+    # подписки от связанного объекта User, это выглядит читаемо.
+
     user = models.ForeignKey(User, on_delete=models.CASCADE,
-                             verbose_name='User')
+                             related_name='subscription_set',
+                             verbose_name='Пользователь')
 
     def __str__(self):
         return self.user.username
 
     class Meta:
         app_label = 'recipes'
-        verbose_name = 'Subscription'
-        verbose_name_plural = 'Subscriptions'
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
 
 
 class ShoppingCard(models.Model):
@@ -128,14 +142,15 @@ class ShoppingCard(models.Model):
     recipes = models.ManyToManyField(Recipe,
                                      related_name='recipes',
                                      blank=True,
-                                     verbose_name='Recipes')
+                                     verbose_name='Рецепты')
     user = models.ForeignKey(User, on_delete=models.CASCADE,
-                             verbose_name='User')
+                             related_name='shoppingcard_set',
+                             verbose_name='Пользователь')
 
     def __str__(self):
         return self.user.username
 
     class Meta:
         app_label = 'recipes'
-        verbose_name = 'ShoppingCard'
-        verbose_name_plural = 'ShoppingCards'
+        verbose_name = 'СписокПокупок'
+        verbose_name_plural = 'СпискиПокупок'

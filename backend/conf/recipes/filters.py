@@ -1,6 +1,11 @@
 import django_filters
 
-from .models import Ingredient
+from django_filters import rest_framework
+from django_filters import FilterSet
+from rest_framework.generics import get_object_or_404
+
+from users.models import User
+from .models import Ingredient, Recipe, Favourite, ShoppingCard
 
 
 class IngredientFilter(django_filters.FilterSet):
@@ -12,12 +17,41 @@ class IngredientFilter(django_filters.FilterSet):
         fields = ['name']
 
 
-class RecipeFilter(django_filters.FilterSet):
-    is_favorited = django_filters.BooleanFilter(
-        field_name='name',
-        lookup_expr='icontains'
-    )
+class RecipeFilter(FilterSet):
+    is_favorited = rest_framework.BooleanFilter(field_name='favourites__user',
+                                                method='filter_is_favorited')
+    is_in_shopping_cart = rest_framework.BooleanFilter(
+        field_name='shoppingcard__user', method='filter_is_in_shopping_cart')
+    author = rest_framework.CharFilter(field_name='author__username',
+                                       method='filter_author')
+    tags = rest_framework.CharFilter(field_name='tags__slug',
+                                     method='filter_tags')
 
     class Meta:
-        model = Ingredient
-        fields = ['name']
+        model = Recipe
+        fields = ['is_favorited', 'is_in_shopping_cart', 'author', 'tags']
+
+    def filter_is_favorited(self, queryset, name, value):
+        request = self.request
+        if value:
+            recipe_pk_list = Favourite.objects.filter(
+                user=request.user).values_list('recipe_id', flat=True)
+            return queryset.filter(pk__in=recipe_pk_list)
+        return queryset
+
+    def filter_author(self, queryset, name, value):
+        if value:
+            return queryset.filter(author__id=value)
+        return queryset
+
+    def filter_is_in_shopping_cart(self, queryset, name, value):
+        request = self.request
+        if value:
+            recipe_pk_list = ShoppingCard.objects.get(
+                user=request.user).recipes.all().values_list('pk', flat=True)
+            return queryset.filter(pk__in=recipe_pk_list)
+        return queryset
+
+    def filter_tags(self, queryset, name, value):
+        tags = value.split(',')
+        return queryset.filter(tags__slug__in=tags)
