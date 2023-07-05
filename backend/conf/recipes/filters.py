@@ -2,9 +2,7 @@ import django_filters
 
 from django_filters import rest_framework
 from django_filters import FilterSet
-from rest_framework.generics import get_object_or_404
 
-from users.models import User
 from .models import Ingredient, Recipe, Favourite, ShoppingCard
 
 

@@ -1,5 +1,4 @@
 import io
-import os
 
 from django.db.models import Value, Count, F, Sum
 from django.db.models.functions import Concat
@@ -8,12 +7,10 @@ from django_filters import rest_framework
 from rest_framework import viewsets, status, permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-from conf.settings import BASE_DIR
 from recipes.filters import IngredientFilter, RecipeFilter
 from recipes.models import (Tag, Ingredient, Subscription, Recipe, Favourite,
                             ShoppingCard)

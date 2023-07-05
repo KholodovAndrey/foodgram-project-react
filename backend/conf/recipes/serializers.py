@@ -1,5 +1,4 @@
 import base64
-import random
 import uuid
 
 from datetime import datetime
@@ -117,7 +116,8 @@ class UserResponseWithRecipesSerializer(serializers.ModelSerializer):
 
 
 class UserResponseWithRecipesWithValidateSerializer(
-    serializers.ModelSerializer):
+    serializers.ModelSerializer
+):
     """Сериализатор подписки."""
 
     class Meta:
@@ -332,7 +332,6 @@ class RecipeResponseSerializer(serializers.ModelSerializer):
     # Тем боле нам все равно нужно делать запрос в бд, чтобы достать
     # конкретный ингредиент для закрепления за рецептом
     # и далее так же
-
 
     def update(self, instance, validated_data):
         image = self.base_64_to_image()
