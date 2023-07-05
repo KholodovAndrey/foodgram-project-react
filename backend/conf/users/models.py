@@ -3,8 +3,9 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-class User(AbstractUser):  # мы переопределяем модель, чтобы сделать поля
-                           # обязательными, что значит убираем лишний код?
+class User(AbstractUser):
+    # мы переопределяем модель, чтобы сделать поля
+    # обязательными, что значит убираем лишний код?
 
     """Модель пользователя."""
 

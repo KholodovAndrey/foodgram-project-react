@@ -319,12 +319,12 @@ class RecipeResponseSerializer(serializers.ModelSerializer):
             )
             recipe.tags.set(tags)
             recipe.save()
-            ingredients = [IngredientWithQuantity.objects.bulk_create([
-                IngredientWithQuantity(
-                    ingredient=get_object_or_404(Ingredient, pk=item['id']),
-                    amount=item['amount'],
-                    recipe=recipe
-                )]) for item in self.initial_data['ingredients']]
+            # ingredients = [IngredientWithQuantity.objects.bulk_create([
+            #     IngredientWithQuantity(
+            #         ingredient=get_object_or_404(Ingredient, pk=item['id']),
+            #         amount=item['amount'],
+            #         recipe=recipe
+            #     )]) for item in self.initial_data['ingredients']]
         return recipe
     # почему get_object_or_404 лишний? Если пользователь
     # в запросе укажет не верный id ингредиента? С помощью
@@ -348,10 +348,10 @@ class RecipeResponseSerializer(serializers.ModelSerializer):
             for ingredient in IngredientWithQuantity.objects.filter(
                     recipe=instance):
                 ingredient.delete()
-            ingredients = [IngredientWithQuantity.objects.bulk_create([
-                IngredientWithQuantity(
-                    ingredient=get_object_or_404(Ingredient, pk=item['id']),
-                    amount=item['amount'],
-                    recipe=instance
-                )]) for item in self.initial_data['ingredients']]
+            # ingredients = [IngredientWithQuantity.objects.bulk_create([
+            #     IngredientWithQuantity(
+            #         ingredient=get_object_or_404(Ingredient, pk=item['id']),
+            #         amount=item['amount'],
+            #         recipe=instance
+            #     )]) for item in self.initial_data['ingredients']]
         return instance
