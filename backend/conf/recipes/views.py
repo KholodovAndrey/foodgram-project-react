@@ -23,7 +23,8 @@ from recipes.serializers import (UserSerializer, UserResponseSerializer,
                                  RecipeSerializer, RecipeResponseSerializer,
                                  UserResponseWithRecipesWithValidateSerializer,
                                  RecipeFavouriteSerializer,
-                                 RecipeShoppingCardSerializer, )
+                                 RecipeShoppingCardSerializer,
+                                 RecipeResponsePostUpdateSerializer, )
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -56,7 +57,6 @@ class UserViewSet(viewsets.ModelViewSet):
             email=request.data['email'],
         )
         Token.objects.create(user=user)
-        Subscription.objects.create(user=user)
         ShoppingCard.objects.create(user=user)
         return Response(UserResponseSerializer(user, context={
             'request': request
@@ -89,13 +89,13 @@ class UserViewSet(viewsets.ModelViewSet):
     def subscriptions(self, request):
         self.permission_classes = [permissions.IsAuthenticated]
         super().check_permissions(request)
-        subscription = Subscription.objects.get(user=request.user)
-        subscription_list_pk = subscription.subscriptions.all().values_list(
-            'pk', flat=True)
+        subscription = Subscription.objects.filter(user=request.user)
         users = User.objects.annotate(is_subscribed=Value(True),
                                       recipes_count=Count(
                                           'recipe_set')).filter(
-            id__in=subscription_list_pk
+            id__in=subscription.values_list(
+                'subscriptions__id', flat=True
+            )
         )
         paginator = self.pagination_class()
         return paginator.get_paginated_response(
@@ -109,23 +109,27 @@ class UserViewSet(viewsets.ModelViewSet):
         user = get_object_or_404(User, pk=pk)
         user.is_subscribed = True
         user.recipes_count = user.recipe_set.all().count()
-        subscribe = get_object_or_404(Subscription, user=request.user)
         serializer = UserResponseWithRecipesWithValidateSerializer(
             data=request.data,
             context={
                 'user': user,
                 'current_user': request.user,
-                'subscribe': subscribe,
                 'method': request.method,
             })
         serializer.is_valid(raise_exception=True)
         if request.method == 'POST':
-            subscribe.subscriptions.add(user)
+            Subscription.objects.create(
+                user=request.user,
+                subscriptions=user
+            )
             return Response(UserResponseWithRecipesSerializer(
                 user, many=False
             ).data, status=status.HTTP_201_CREATED)
         else:
-            subscribe.subscriptions.remove(user)
+            Subscription.objects.get(
+                user=request.user,
+                subscriptions=user
+            ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -173,8 +177,33 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = [rest_framework.DjangoFilterBackend]
     filterset_class = RecipeFilter
 
+    def create(self, request, *args, **kwargs):
+        serializer = RecipeResponsePostUpdateSerializer(
+            data=request.data,
+            context={
+                'request': request
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+        self.serializer_class = RecipeResponseSerializer
+        instance = serializer.save()
+        serializer_result = self.get_serializer(instance)
+        return Response(serializer_result.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, pk, *args, **kwargs):
+        instance = self.get_object()
+        serializer = RecipeResponsePostUpdateSerializer(instance,
+                                                        data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.serializer_class = RecipeResponseSerializer
+        instance = serializer.save()
+        serializer_result = self.get_serializer(instance)
+        return Response(serializer_result.data)
+
     @action(detail=False, methods=['get'])
     def download_shopping_cart(self, request):
+        self.permission_classes = [permissions.IsAuthenticated]
+        super().check_permissions(request)
         shopping_carts = ShoppingCard.objects.get(user=request.user)
         spisok = shopping_carts.recipes.values(
             name_measurement_unit=Concat(

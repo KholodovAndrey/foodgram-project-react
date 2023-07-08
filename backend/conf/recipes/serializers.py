@@ -4,13 +4,12 @@ import uuid
 from datetime import datetime
 from django.core.files.base import ContentFile
 from django.db import transaction
-from rest_framework import serializers, permissions
+from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
 
 from recipes.models import (Tag, Ingredient, Recipe, IngredientWithQuantity,
-                            Favourite, ShoppingCard)
+                            Favourite, ShoppingCard, Subscription)
 from users.models import User
 
 
@@ -96,8 +95,10 @@ class UserResponseSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
         if user.is_authenticated:
-            return user.subscription_set.get(user=user).subscriptions.filter(
-                pk=obj.pk).exists()
+            return user.subscription_set.filter(
+                user=user,
+                subscriptions=obj.pk
+            ).exists()
         return False
 
 
@@ -136,13 +137,17 @@ class UserResponseWithRecipesWithValidateSerializer(
             if self.context['current_user'] == self.context['user']:
                 raise ValidationError(
                     {'error': 'it is not possible to subscribe to yourself'})
-            if self.context['subscribe'].subscriptions.filter(
-                    pk=self.context['user'].pk).exists():
+            if Subscription.objects.filter(
+                    user=self.context['current_user'],
+                    subscriptions=self.context['user']
+            ).exists():
                 raise ValidationError(
                     {'error': 'it is not possible to subscribe to this user'})
             return data
-        if not self.context['subscribe'].subscriptions.filter(
-                pk=self.context['user'].pk).exists():
+        if not Subscription.objects.filter(
+                user=self.context['current_user'],
+                subscriptions=self.context['user']
+        ).exists():
             raise ValidationError(
                 {'error': 'you are not subscribed to this user'})
         return data
@@ -208,6 +213,14 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
+class IngredientWithQuantityForRecipeSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='ingredient.id')
+
+    class Meta:
+        model = IngredientWithQuantity
+        fields = ('id', 'amount')
+
+
 class IngredientWithQuantitySerializer(serializers.ModelSerializer):
     """Сериализатор ингридиента в рецепте."""
 
@@ -226,10 +239,9 @@ class RecipeResponseSerializer(serializers.ModelSerializer):
 
     tags = TagSerializer(many=True, read_only=True)
     author = UserResponseSerializer(read_only=True)
-    ingredients = serializers.SerializerMethodField()
+    ingredients = serializers.SerializerMethodField(read_only=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -259,33 +271,31 @@ class RecipeResponseSerializer(serializers.ModelSerializer):
                 return True
         return False
 
-    def validate(self, data):
-        if self.context['request'].method not in permissions.SAFE_METHODS:
-            # почему лишнее условие? если мне прилетает
-            # безопасный метод, например get, то вся логика
-            # валидации мне не нужна. Проверка на обязательность
-            # также нужна, потому что использование required = True,
-            # не возможно с использование read_only, а использование
-            # read_only, нужно для получения списка записей
 
-            errors = {}
-            required_filelds = ['ingredients', 'tags']
-            if self.context['request'].method != "PATCH":
-                required_filelds.append('image')
-            for field in required_filelds:
-                if field not in self.initial_data:
-                    errors[field] = "Обязательное поле"
-            if errors:
-                raise ValidationError(errors)
-            for ingredient in self.initial_data['ingredients']:
-                try:
-                    int(ingredient['amount'])
-                    if int(ingredient['amount']) < 1:
-                        raise ValueError(
-                            {'error': 'amount must be int and must be more 1'})
-                except Exception:
+class RecipeResponsePostUpdateSerializer(serializers.ModelSerializer):
+    """Сериализатор работы с рецептом."""
+
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Tag.objects.all()
+    )
+    ingredients = IngredientWithQuantityForRecipeSerializer(many=True)
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'tags', 'ingredients', 'name', 'image',
+                  'text', 'cooking_time')
+
+    def validate(self, data):
+        for ingredient in self.initial_data['ingredients']:
+            try:
+                int(ingredient['amount'])
+                if int(ingredient['amount']) < 1:
                     raise ValueError(
                         {'error': 'amount must be int and must be more 1'})
+            except Exception:
+                raise ValueError(
+                    {'error': 'amount must be int and must be more 1'})
         return data
 
     def base_64_to_image(self):
@@ -307,7 +317,7 @@ class RecipeResponseSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         image = self.base_64_to_image()
-        tags = [get_object_or_404(Tag, pk=pk) for pk in
+        tags = [Tag.objects.get(pk=pk) for pk in
                 self.initial_data['tags']]
         with transaction.atomic():
             recipe = Recipe.objects.create(
@@ -321,21 +331,15 @@ class RecipeResponseSerializer(serializers.ModelSerializer):
             recipe.save()
             IngredientWithQuantity.objects.bulk_create([
                 IngredientWithQuantity(
-                    ingredient=get_object_or_404(Ingredient, pk=item['id']),
+                    ingredient=Ingredient.objects.get(pk=item['id']),
                     amount=item['amount'],
                     recipe=recipe
                 ) for item in self.initial_data['ingredients']])
         return recipe
-    # почему get_object_or_404 лишний? Если пользователь
-    # в запросе укажет не верный id ингредиента? С помощью
-    # get_object_or_404 сразу происиходит проверка входных данных.
-    # Тем боле нам все равно нужно делать запрос в бд, чтобы достать
-    # конкретный ингредиент для закрепления за рецептом
-    # и далее так же
 
     def update(self, instance, validated_data):
         image = self.base_64_to_image()
-        tags = [get_object_or_404(Tag, pk=pk) for pk in
+        tags = [Tag.objects.get(pk=pk) for pk in
                 self.initial_data['tags']]
         with transaction.atomic():
             instance.name = self.initial_data['name']
@@ -350,7 +354,7 @@ class RecipeResponseSerializer(serializers.ModelSerializer):
                 ingredient.delete()
             IngredientWithQuantity.objects.bulk_create([
                 IngredientWithQuantity(
-                    ingredient=get_object_or_404(Ingredient, pk=item['id']),
+                    ingredient=Ingredient.objects.get(pk=item['id']),
                     amount=item['amount'],
                     recipe=instance
                 ) for item in self.initial_data['ingredients']])

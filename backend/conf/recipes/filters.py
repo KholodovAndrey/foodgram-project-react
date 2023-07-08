@@ -39,7 +39,7 @@ class RecipeFilter(FilterSet):
 
     def filter_author(self, queryset, name, value):
         if value:
-            return queryset.filter(author__id=value)
+            return queryset.filter(author__username=value)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):

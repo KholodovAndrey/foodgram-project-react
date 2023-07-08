@@ -10,6 +10,9 @@ class Tag(models.Model):
                             unique=True, verbose_name='Имя')
     color = models.CharField(max_length=8, blank=False, null=False,
                              unique=True, verbose_name='Цвет')
+    # Сделал валидацию, находится в файлике админ
+    # Если не ошибаюсь добавить тэг можно только через админку,
+    # запроса на создание тега нету
     slug = models.SlugField(max_length=201, blank=False, null=False,
                             unique=True, verbose_name='Слаг')
 
@@ -51,6 +54,7 @@ class IngredientWithQuantity(models.Model):
                                blank=False, null=False,
                                related_name='ingredientwithquantity_set',
                                verbose_name='Рецепт')
+    # Сделал валидацию, находится в файлике админ и в сериалайзере
     amount = models.PositiveSmallIntegerField(blank=False, null=False,
                                               verbose_name='Количество')
 
@@ -115,13 +119,11 @@ class Favourite(models.Model):
 class Subscription(models.Model):
     """Модель подписки."""
 
-    subscriptions = models.ManyToManyField(User,
-                                           related_name='subscriptions',
-                                           blank=True, null=True,
-                                           verbose_name='Подписки')
-    #  M2M, потому что в админке так гораздо удобнее смотреть подписки.
-    #  related_name я так указал как раз потому, что я пытаюсь забрать
-    # подписки от связанного объекта User, это выглядит читаемо.
+    subscriptions = models.ForeignKey(User,
+                                      related_name='user_subscriptions',
+                                      on_delete=models.CASCADE,
+                                      blank=True, null=True,
+                                      verbose_name='Подписки')
 
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                              related_name='subscription_set',

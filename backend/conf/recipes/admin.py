@@ -104,7 +104,6 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('user',)
-    filter_horizontal = ('subscriptions',)
 
 
 @admin.register(Favourite)
