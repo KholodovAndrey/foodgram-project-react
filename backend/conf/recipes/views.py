@@ -28,10 +28,6 @@ from recipes.serializers import (UserSerializer, UserResponseSerializer,
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    # Djaoser мы не используем потому что проект направлен на получение
-    # записей, смысл от программиста, если он всегда пользуется готовым
-    # велосипедом. Скоро и gpt так сможет, поэтому нужно становиться
-    # базированным разработчиком
     pagination_class = PageNumberPagination
     queryset = User.objects.all()
     serializer_class = UserResponseSerializer
