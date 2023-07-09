@@ -1,12 +1,11 @@
 version: '3.3'
 
 services:
+
   frontend:
-    image: aaandrew47/foodgram:frontent_latest
-  # frontend:
-  #   build:
-  #     context: ../frontend
-  #     dockerfile: Dockerfile
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
@@ -16,10 +15,8 @@ services:
     image: postgres:13.4
     volumes:
       - data_value:/var/lib/postgresql/data/
-    # env_file:
-    #   - ../backend/conf/.env
     env_file:
-      - ./.env
+      - ../backend/conf/.env
 
   web:
     image: aaandrew47/foodgram:backend_latest
@@ -33,10 +30,8 @@ services:
       - media_value:/app/media/
     depends_on:
       - db
-    # env_file:
-    #   - ../backend/conf/.env
     env_file:
-      - ./.env
+      - ../backend/conf/.env
 
 
   nginx:
