@@ -20,10 +20,6 @@ services:
 
   web:
     image: aaandrew47/foodgram:backend_latest
-  # web:
-  #   build:
-  #     context: ../backend
-  #     dockerfile: Dockerfile
     restart: always
     volumes:
       - static_value:/app/static/
