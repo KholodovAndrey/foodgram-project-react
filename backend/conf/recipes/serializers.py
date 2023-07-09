@@ -1,16 +1,16 @@
 import base64
 import uuid
-
 from datetime import datetime
+
 from django.core.files.base import ContentFile
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
-
-from recipes.models import (Tag, Ingredient, Recipe, IngredientWithQuantity,
-                            Favourite, ShoppingCard, Subscription)
 from users.models import User
+
+from recipes.models import (Favourite, Ingredient, IngredientWithQuantity,
+                            Recipe, ShoppingCard, Subscription, Tag)
 
 
 class RecipeSerializer(serializers.ModelSerializer):
