@@ -42,8 +42,10 @@ jobs:
           script: |
             cd infra
             sudo docker-compose down
+            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/foodgram:backend_latest
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram:frontend_latest
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram:backend_latest
+            rm .env
             touch .env
             echo DB_ENGINE=${{ secrets.DATABASES_ENGINE }} >> .env
             echo DB_NAME=${{ secrets.DATABASES_NAME }} >> .env
