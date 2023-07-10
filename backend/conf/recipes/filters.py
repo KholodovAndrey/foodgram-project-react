@@ -1,5 +1,5 @@
 from django_filters import rest_framework, FilterSet, CharFilter
-from django_filters.rest_framework AllValuesMultipleFilter
+
 from .models import Ingredient, Recipe, Favourite, ShoppingCard
 
 
@@ -18,8 +18,7 @@ class RecipeFilter(FilterSet):
         field_name='shoppingcard__user', method='filter_is_in_shopping_cart')
     author = rest_framework.CharFilter(field_name='author__username',
                                        method='filter_author')
-    tags = AllValuesMultipleFilter(field_name='tags__slug')
-    # tags = rest_framework.CharFilter(method='filter_tags')
+    tags = rest_framework.CharFilter(method='filter_tags')
 
     class Meta:
         model = Recipe
@@ -46,6 +45,6 @@ class RecipeFilter(FilterSet):
             return queryset.filter(pk__in=recipe_pk_list)
         return queryset
 
-    # def filter_tags(self, queryset, name, value):
-    #     tags = self.request.query_params.getlist('tags')
-    #     return queryset.filter(tags__slug__in=tags)
+    def filter_tags(self, queryset, name, value):
+        tags = self.request.query_params.getlist('tags')
+        return queryset.filter(tags__slug__in=tags)
