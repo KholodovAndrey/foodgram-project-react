@@ -3,9 +3,8 @@ version: '3.3'
 services:
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    web:
+      image: aaandrew47/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
@@ -18,12 +17,8 @@ services:
     env_file:
       - ./.env
 
-  # web:
-  #   # image: aaandrew47/foodgram:backend_latest
   web:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
+      image: aaandrew47/foodgram_backend:latest
     restart: always
     volumes:
       - static_value:/app/static/
