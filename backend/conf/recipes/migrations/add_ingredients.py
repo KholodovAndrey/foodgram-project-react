@@ -6,8 +6,7 @@ from rest_framework.utils import json
 
 def add_ingredients(apps, schema_editor):
     ingredient = apps.get_model('recipes', 'Ingredient')
-    path = os.path.join(os.path.dirname(__file__),
-                        '..', '..', '..', '..', 'data', 'ingredients.json')
+    path = os.path.join(os.path.dirname(__file__), 'ingredients.json')
     with open(path, 'r') as file:
         data = json.load(file)
         for item in data:
