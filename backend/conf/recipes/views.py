@@ -96,7 +96,9 @@ class UserViewSet(viewsets.ModelViewSet):
         paginator = self.pagination_class()
         return paginator.get_paginated_response(
             UserResponseWithRecipesSerializer(paginator.paginate_queryset(
-                users, request), many=True).data)
+                users, request), many=True, context={
+                'recipes_limit': request.query_params.get('recipes_limit')
+            }).data)
 
     @action(detail=True, methods=['post', 'delete'])
     def subscribe(self, request, pk):
@@ -133,11 +135,9 @@ class TokenViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post', ])
     def login(self, request):
-        user = get_object_or_404(User, email=request.data['email'])
-        serializer = TokenSerializer(data=request.data, context={
-            'user': user
-        })
+        serializer = TokenSerializer(data=request.data, )
         serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(User, email=request.data.get('email'))
         token, created = Token.objects.get_or_create(user=user)
         return Response(
             {'auth_token': token.key},

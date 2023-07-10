@@ -1,4 +1,5 @@
 from django.db import models
+from rest_framework.exceptions import ValidationError
 
 from users.models import User
 
@@ -10,11 +11,14 @@ class Tag(models.Model):
                             unique=True, verbose_name='Имя')
     color = models.CharField(max_length=8, blank=False, null=False,
                              unique=True, verbose_name='Цвет')
-    # Сделал валидацию, находится в файлике админ
-    # Если не ошибаюсь добавить тэг можно только через админку,
-    # запроса на создание тега нету
     slug = models.SlugField(max_length=201, blank=False, null=False,
                             unique=True, verbose_name='Слаг')
+
+    def clean(self):
+        color = self.color
+        if not isinstance(color, str) or len(color) != 7 or color[0] != "#":
+            raise ValidationError('Поле color должно иметь тип вида #000000')
+        return self.color
 
     def __str__(self):
         return self.name
@@ -54,9 +58,13 @@ class IngredientWithQuantity(models.Model):
                                blank=False, null=False,
                                related_name='ingredientwithquantity_set',
                                verbose_name='Рецепт')
-    # Сделал валидацию, находится в файлике админ и в сериалайзере
     amount = models.PositiveSmallIntegerField(blank=False, null=False,
                                               verbose_name='Количество')
+
+    def clean(self):
+        if self.amount < 1:
+            raise ValidationError('Поле amount должно быть больше или равно 1')
+        return self.amount
 
     def __str__(self):
         return f'{self.ingredient.name} - {self.amount}'

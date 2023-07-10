@@ -1,7 +1,6 @@
 import django_filters
 
-from django_filters import rest_framework
-from django_filters import FilterSet
+from django_filters import rest_framework, FilterSet
 
 from .models import Ingredient, Recipe, Favourite, ShoppingCard
 
@@ -22,8 +21,7 @@ class RecipeFilter(FilterSet):
         field_name='shoppingcard__user', method='filter_is_in_shopping_cart')
     author = rest_framework.CharFilter(field_name='author__username',
                                        method='filter_author')
-    tags = rest_framework.CharFilter(field_name='tags__slug',
-                                     method='filter_tags')
+    tags = rest_framework.CharFilter(method='filter_tags')
 
     class Meta:
         model = Recipe
@@ -51,5 +49,5 @@ class RecipeFilter(FilterSet):
         return queryset
 
     def filter_tags(self, queryset, name, value):
-        tags = value.split(',')
+        tags = self.request.query_params.getlist('tags')
         return queryset.filter(tags__slug__in=tags)

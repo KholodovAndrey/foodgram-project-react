@@ -7,10 +7,10 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
-from users.models import User
 
-from recipes.models import (Favourite, Ingredient, IngredientWithQuantity,
-                            Recipe, ShoppingCard, Subscription, Tag)
+from recipes.models import (Tag, Ingredient, Recipe, IngredientWithQuantity,
+                            Favourite, ShoppingCard, Subscription)
+from users.models import User
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -27,12 +27,7 @@ class RecipeFavouriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
-
-    def get_fields(self, *args, **kwargs):
-        fields = super().get_fields(*args, **kwargs)
-        for field in fields:
-            fields[field].read_only = True
-        return fields
+        read_only_fields = fields
 
     def validate(self, data):
         if self.context.get('method') == 'POST':
@@ -52,12 +47,7 @@ class RecipeShoppingCardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
-
-    def get_fields(self, *args, **kwargs):
-        fields = super().get_fields(*args, **kwargs)
-        for field in fields:
-            fields[field].read_only = True
-        return fields
+        read_only_fields = fields
 
     def validate(self, data):
         if self.context.get('method') == 'POST':
@@ -115,6 +105,14 @@ class UserResponseWithRecipesSerializer(serializers.ModelSerializer):
             'email', 'id', 'username', 'first_name', 'last_name',
             'is_subscribed', 'recipes', 'recipes_count')
 
+    def to_representation(self, instance):
+        recipes_limit = self.context.get('recipes_limit') or 3
+        recipes = instance.recipe_set.values()[:int(recipes_limit)]
+        serializer = RecipeSerializer(recipes, many=True)
+        representation = super().to_representation(instance)
+        representation['recipes'] = serializer.data
+        return representation
+
 
 class UserResponseWithRecipesWithValidateSerializer(
     serializers.ModelSerializer
@@ -124,13 +122,9 @@ class UserResponseWithRecipesWithValidateSerializer(
     class Meta:
         model = User
         fields = (
-            'email', 'id', 'username', 'first_name', 'last_name',)
-
-    def get_fields(self, *args, **kwargs):
-        fields = super().get_fields(*args, **kwargs)
-        for field in fields:
-            fields[field].read_only = True
-        return fields
+            'email', 'id', 'username', 'first_name', 'last_name',
+        )
+        read_only_fields = fields
 
     def validate(self, data):
         if self.context.get('method') == 'POST':
@@ -163,12 +157,10 @@ class SetPasswordSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'new_password', 'current_password',)
-
-    def get_fields(self, *args, **kwargs):
-        fields = super().get_fields(*args, **kwargs)
-        for field in fields:
-            fields[field].read_only = True
-        return fields
+        extra_kwargs = {
+            'new_password': {'required': True},
+            'current_password': {'required': True}
+        }
 
     def validate(self, data):
         if not self.context['user'].check_password(
@@ -180,19 +172,21 @@ class SetPasswordSerializer(serializers.ModelSerializer):
 class TokenSerializer(serializers.ModelSerializer):
     """Сериализатор токена."""
 
+    email = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+
     class Meta:
         model = Token
-        fields = ('__all__')
-
-    def get_fields(self, *args, **kwargs):
-        fields = super().get_fields(*args, **kwargs)
-        for field in fields:
-            fields[field].read_only = True
-        return fields
+        fields = ('email', 'password',)
+        extra_kwargs = {
+            'email': {'required': True},
+            'password': {'required': True}
+        }
 
     def validate(self, data):
-        if not self.context['user'].check_password(
-                self.initial_data['password']):
+        if not User.objects.get(
+                email=self.initial_data['email']
+        ).check_password(self.initial_data['password']):
             raise ValidationError('Invalid current password')
         return data
 
@@ -279,28 +273,17 @@ class RecipeResponsePostUpdateSerializer(serializers.ModelSerializer):
         many=True, queryset=Tag.objects.all()
     )
     ingredients = IngredientWithQuantityForRecipeSerializer(many=True)
-    image = serializers.SerializerMethodField()
+    image = serializers.CharField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'ingredients', 'name', 'image',
                   'text', 'cooking_time')
 
-    def validate(self, data):
-        for ingredient in self.initial_data['ingredients']:
-            try:
-                int(ingredient['amount'])
-                if int(ingredient['amount']) < 1:
-                    raise ValueError(
-                        {'error': 'amount must be int and must be more 1'})
-            except Exception:
-                raise ValueError(
-                    {'error': 'amount must be int and must be more 1'})
-        return data
-
     def base_64_to_image(self):
-        if self.initial_data.get('image'):
-            format_image, imgstr = self.initial_data['image'].split(';base64,')
+        if self.validated_data.get('image'):
+            format_image, imgstr = self.validated_data['image'].split(
+                ';base64,')
             ext = format_image.split('/')[-1]
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             unique_name = (
@@ -312,50 +295,51 @@ class RecipeResponsePostUpdateSerializer(serializers.ModelSerializer):
             )
         return None
 
-    def get_image(self, obj):
-        return obj.image.url
-
     def create(self, validated_data):
         image = self.base_64_to_image()
-        tags = [Tag.objects.get(pk=pk) for pk in
-                self.initial_data['tags']]
+        tags = [Tag.objects.get(pk=tag.pk) for tag in
+                self.validated_data['tags']]
         with transaction.atomic():
             recipe = Recipe.objects.create(
                 author=self.context['request'].user,
-                name=self.initial_data['name'],
-                text=self.initial_data['text'],
+                name=self.validated_data['name'],
+                text=self.validated_data['text'],
                 image=image,
-                cooking_time=self.initial_data['cooking_time']
+                cooking_time=self.validated_data['cooking_time']
             )
             recipe.tags.set(tags)
             recipe.save()
-            IngredientWithQuantity.objects.bulk_create([
-                IngredientWithQuantity(
-                    ingredient=Ingredient.objects.get(pk=item['id']),
-                    amount=item['amount'],
-                    recipe=recipe
-                ) for item in self.initial_data['ingredients']])
+            ingredients = [IngredientWithQuantity(
+                ingredient=Ingredient.objects.get(pk=item['ingredient']['id']),
+                amount=item['amount'],
+                recipe=recipe
+            ) for item in self.validated_data['ingredients']]
+            for ingredient in ingredients:
+                ingredient.clean()
+            IngredientWithQuantity.objects.bulk_create(ingredients)
         return recipe
 
     def update(self, instance, validated_data):
         image = self.base_64_to_image()
-        tags = [Tag.objects.get(pk=pk) for pk in
-                self.initial_data['tags']]
+        tags = [Tag.objects.get(pk=tag.pk) for tag in
+                self.validated_data['tags']]
         with transaction.atomic():
-            instance.name = self.initial_data['name']
-            instance.text = self.initial_data['text']
+            instance.name = self.validated_data['name']
+            instance.text = self.validated_data['text']
             if image:
                 instance.image = image
-            instance.cooking_time = self.initial_data['cooking_time']
+            instance.cooking_time = self.validated_data['cooking_time']
             instance.tags.set(tags)
             instance.save()
             for ingredient in IngredientWithQuantity.objects.filter(
                     recipe=instance):
                 ingredient.delete()
-            IngredientWithQuantity.objects.bulk_create([
-                IngredientWithQuantity(
-                    ingredient=Ingredient.objects.get(pk=item['id']),
-                    amount=item['amount'],
-                    recipe=instance
-                ) for item in self.initial_data['ingredients']])
+            ingredients = [IngredientWithQuantity(
+                ingredient=Ingredient.objects.get(pk=item['ingredient']['id']),
+                amount=item['amount'],
+                recipe=instance
+            ) for item in self.validated_data['ingredients']]
+            for ingredient in ingredients:
+                ingredient.clean()
+            IngredientWithQuantity.objects.bulk_create(ingredients)
         return instance
