@@ -132,7 +132,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class TokenViewSet(viewsets.ViewSet):
-
     @action(detail=False, methods=['post', ])
     def login(self, request):
         serializer = TokenSerializer(data=request.data, )

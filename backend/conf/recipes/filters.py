@@ -1,13 +1,10 @@
-import django_filters
-
-from django_filters import rest_framework, FilterSet
-
+from django_filters import rest_framework, FilterSet, CharFilter
+from django_filters.rest_framework AllValuesMultipleFilter
 from .models import Ingredient, Recipe, Favourite, ShoppingCard
 
 
-class IngredientFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(field_name='name',
-                                     lookup_expr='icontains')
+class IngredientFilter(FilterSet):
+    name = CharFilter(field_name='name', lookup_expr='icontains')
 
     class Meta:
         model = Ingredient
@@ -21,7 +18,8 @@ class RecipeFilter(FilterSet):
         field_name='shoppingcard__user', method='filter_is_in_shopping_cart')
     author = rest_framework.CharFilter(field_name='author__username',
                                        method='filter_author')
-    tags = rest_framework.CharFilter(method='filter_tags')
+    tags = AllValuesMultipleFilter(field_name='tags__slug')
+    # tags = rest_framework.CharFilter(method='filter_tags')
 
     class Meta:
         model = Recipe
@@ -48,6 +46,6 @@ class RecipeFilter(FilterSet):
             return queryset.filter(pk__in=recipe_pk_list)
         return queryset
 
-    def filter_tags(self, queryset, name, value):
-        tags = self.request.query_params.getlist('tags')
-        return queryset.filter(tags__slug__in=tags)
+    # def filter_tags(self, queryset, name, value):
+    #     tags = self.request.query_params.getlist('tags')
+    #     return queryset.filter(tags__slug__in=tags)
