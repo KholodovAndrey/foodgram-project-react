@@ -16,6 +16,12 @@ from users.models import User
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор рецепта."""
 
+    image = serializers.SerializerMethodField()
+
+    def get_image(self, obj):
+        if isinstance(obj, dict):
+            return obj['image']
+
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
@@ -164,7 +170,7 @@ class SetPasswordSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if not self.context['user'].check_password(
-                self.initial_data['current_password']):
+                data['current_password']):
             raise ValidationError('Invalid current password')
         return data
 
@@ -185,8 +191,8 @@ class TokenSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if not User.objects.get(
-                email=self.initial_data['email']
-        ).check_password(self.initial_data['password']):
+                email=data['email']
+        ).check_password(data['password']):
             raise ValidationError('Invalid current password')
         return data
 
@@ -273,7 +279,7 @@ class RecipeResponsePostUpdateSerializer(serializers.ModelSerializer):
         many=True, queryset=Tag.objects.all()
     )
     ingredients = IngredientWithQuantityForRecipeSerializer(many=True)
-    image = serializers.CharField()
+    image = serializers.CharField(required=False)
 
     class Meta:
         model = Recipe

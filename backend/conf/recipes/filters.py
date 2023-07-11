@@ -1,4 +1,6 @@
-from django_filters import rest_framework, FilterSet, CharFilter
+from django.db.models import Q
+
+from django_filters import FilterSet, CharFilter, rest_framework
 
 from .models import Ingredient, Recipe, Favourite, ShoppingCard
 
@@ -47,4 +49,9 @@ class RecipeFilter(FilterSet):
 
     def filter_tags(self, queryset, name, value):
         tags = self.request.query_params.getlist('tags')
-        return queryset.filter(tags__slug__in=tags)
+        if tags:
+            conditions = Q()
+            for tag in tags:
+                conditions |= Q(tags__slug__icontains=value)
+            return queryset.filter(conditions)
+        return queryset.none()

@@ -40,7 +40,14 @@ class UserViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         self.permission_classes = [permissions.IsAuthenticated]
         super().check_permissions(request)
-        return super().retrieve(request, *args, **kwargs)
+        user = self.get_object()
+        user.is_subscribed = request.user.subscription_set.filter(
+            user=request.user,
+            subscriptions=user.pk
+        ).exists()
+        user.recipes_count = user.recipe_set.all().count()
+        user.save()
+        return Response(UserResponseWithRecipesSerializer(user).data)
 
     def create(self, request):
         serializer = UserSerializer(data=request.data)
@@ -132,6 +139,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class TokenViewSet(viewsets.ViewSet):
+
     @action(detail=False, methods=['post', ])
     def login(self, request):
         serializer = TokenSerializer(data=request.data, )

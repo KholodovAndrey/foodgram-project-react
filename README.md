@@ -1,5 +1,6 @@
 # FOODGRAM
-![example workflow](https://github.com/KholodovAndrey/foodgram-project-react/actions/workflows/yamdb_workflow.yml/badge.svg)
+![example workflow](https://github.com/KholodovAndrey/foodgram-project-react/actions/workflows/foodgram_actions.yml/badge.svg)
+
 
 ## О проекте
 
@@ -8,52 +9,66 @@
 Функциональность сайта:
 - Просмотр списка рецептов
 - Просмотр деталей рецепта
-- Создание, редактирование и удаление своих рецептов
-- Возможность добавления тегов для рецепта
-- Поиск рецептов по названию и/или тегам
+- Создание и редактирование своих рецептов
+- Сортировка рецептов по тегам
 - Аутентификация и авторизация пользователей
 - Подписка на других пользователей
 - Формирование списка избранных рецептов
 - Формирование и выгрузка списка продуктов
 
 ## Установка
+Перед установкой обновите индекс пакетов APT:
+   ```
+   sudo apt update
+   ```
 
 1. Клонируйте репозиторий:
-
    ```
    git clone git@github.com:KholodovAndrey/foodgram-project-react.git
    ```
 
-2. Создайте виртуальное окружение и активируйте его:
-
+2. Установите Docker и Docker-compose:
    ```
-   python -m venv env
-   source env/bin/activate
-   ```
-
-3. Установите зависимости:
-
-   ```
-   pip install -r requirements.txt
+   sudo apt install docker.io
+   sudo apt install docker-compose
    ```
 
-4. Создайте миграции:
-
+3. Установите инструменты для работы с Postgres:
    ```
-   python manage.py makemigrations
-   ```
-
-5. Выполните миграции:
-
-   ```
-   python manage.py migrate
+   sudo apt install postgresql postgresql-contrib -y
    ```
 
-5. Запустите локальный сервер:
+4. На своем сервере создайте директорию infra, в которуюнадо скопировать файлы развертывания инфраструктуры:
 
    ```
-   python manage.py runserver
+   docker-compose.yml
+   nginx.conf
    ```
+
+5. В этой же директории создайте файл виртуального окружения:
+
+   ```
+   touch .env
+   ```
+   со следующими параметрами:
+   ```
+   SECRET_KEY = django-insecure-8#*@yr8r=0d-z5%#db$c&=y#ub4bzux5q)+h&w*yld61mlm^#n
+   POSTGRES_DB=django.db.backends.postgresql
+   DB_NAME=foodgram
+   POSTGRES_USER=foodgramadmin
+   POSTGRES_PASSWORD=foodgrampassword
+   DB_HOST=db
+   DB_PORT=5432
+   ```
+
+5. Запустите контениризацию:
+
+   ```
+   docker-compose up
+   ```
+6. Миграции
+7. Коллектстатик
+8. Локалхост
 
 ## Использование
 
@@ -61,10 +76,15 @@
 
 ## Технологии
 
- **Python 3.9,
- [Django 3](https://docs.djangoproject.com/en/3.0/),
- [DjangoRestFramework](https://www.django-rest-framework.org),
- [PostgreSQL](https://www.postgresql.org/docs/)
+[![Python](https://img.shields.io/badge/-Python-464646?style=flat-square&logo=Python)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/-Django-464646?style=flat-square&logo=Django)](https://www.djangoproject.com/)
+[![Django REST Framework](https://img.shields.io/badge/-Django%20REST%20Framework-464646?style=flat-square&logo=Django%20REST%20Framework)](https://www.django-rest-framework.org/)
+[![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-464646?style=flat-square&logo=PostgreSQL)](https://www.postgresql.org/)
+[![Nginx](https://img.shields.io/badge/-NGINX-464646?style=flat-square&logo=NGINX)](https://nginx.org/ru/)
+[![gunicorn](https://img.shields.io/badge/-gunicorn-464646?style=flat-square&logo=gunicorn)](https://gunicorn.org/)
+[![docker](https://img.shields.io/badge/-Docker-464646?style=flat-square&logo=docker)](https://www.docker.com/)
+[![GitHub%20Actions](https://img.shields.io/badge/-GitHub%20Actions-464646?style=flat-square&logo=GitHub%20actions)](https://github.com/features/actions)
+[![Yandex.Cloud](https://img.shields.io/badge/-Yandex.Cloud-464646?style=flat-square&logo=Yandex.Cloud)](https://cloud.yandex.ru/)
 
 ## Авторы
 

@@ -1,5 +1,5 @@
+from django.core.validators import RegexValidator, MinValueValidator
 from django.db import models
-from rest_framework.exceptions import ValidationError
 
 from users.models import User
 
@@ -7,18 +7,18 @@ from users.models import User
 class Tag(models.Model):
     """Модель тега."""
 
+    hex_validator = RegexValidator(
+        regex=r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
+        message='Введите корректное hex-значение.'
+    )
+
     name = models.CharField(max_length=201, blank=False, null=False,
                             unique=True, verbose_name='Имя')
     color = models.CharField(max_length=8, blank=False, null=False,
-                             unique=True, verbose_name='Цвет')
+                             unique=True, verbose_name='Цвет',
+                             validators=[hex_validator])
     slug = models.SlugField(max_length=201, blank=False, null=False,
                             unique=True, verbose_name='Слаг')
-
-    def clean(self):
-        color = self.color
-        if not isinstance(color, str) or len(color) != 7 or color[0] != "#":
-            raise ValidationError('Поле color должно иметь тип вида #000000')
-        return self.color
 
     def __str__(self):
         return self.name
@@ -59,12 +59,9 @@ class IngredientWithQuantity(models.Model):
                                related_name='ingredientwithquantity_set',
                                verbose_name='Рецепт')
     amount = models.PositiveSmallIntegerField(blank=False, null=False,
-                                              verbose_name='Количество')
-
-    def clean(self):
-        if self.amount < 1:
-            raise ValidationError('Поле amount должно быть больше или равно 1')
-        return self.amount
+                                              verbose_name='Количество',
+                                              validators=[
+                                                  MinValueValidator(1)])
 
     def __str__(self):
         return f'{self.ingredient.name} - {self.amount}'
