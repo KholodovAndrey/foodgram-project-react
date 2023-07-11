@@ -1,7 +1,7 @@
 import base64
 import uuid
-from datetime import datetime
 
+from datetime import datetime
 from django.core.files.base import ContentFile
 from django.db import transaction
 from rest_framework import serializers
@@ -15,12 +15,11 @@ from users.models import User
 
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор рецепта."""
-
     image = serializers.SerializerMethodField()
 
     def get_image(self, obj):
         if isinstance(obj, dict):
-            return obj['image']
+            return '/media/' + obj['image']
 
     class Meta:
         model = Recipe
@@ -177,7 +176,6 @@ class SetPasswordSerializer(serializers.ModelSerializer):
 
 class TokenSerializer(serializers.ModelSerializer):
     """Сериализатор токена."""
-
     email = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
 

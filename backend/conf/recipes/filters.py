@@ -1,12 +1,15 @@
+import django_filters
 from django.db.models import Q
 
-from django_filters import FilterSet, CharFilter, rest_framework
+from django_filters import rest_framework
+from django_filters import FilterSet
 
 from .models import Ingredient, Recipe, Favourite, ShoppingCard
 
 
-class IngredientFilter(FilterSet):
-    name = CharFilter(field_name='name', lookup_expr='icontains')
+class IngredientFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(field_name='name',
+                                     lookup_expr='icontains')
 
     class Meta:
         model = Ingredient
@@ -36,7 +39,7 @@ class RecipeFilter(FilterSet):
 
     def filter_author(self, queryset, name, value):
         if value:
-            return queryset.filter(author__username=value)
+            return queryset.filter(author__id=int(value))
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
@@ -52,6 +55,6 @@ class RecipeFilter(FilterSet):
         if tags:
             conditions = Q()
             for tag in tags:
-                conditions |= Q(tags__slug__icontains=value)
-            return queryset.filter(conditions)
+                conditions |= Q(tags__slug__icontains=tag)
+            return queryset.filter(conditions).distinct()
         return queryset.none()

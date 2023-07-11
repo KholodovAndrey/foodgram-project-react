@@ -40,14 +40,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         self.permission_classes = [permissions.IsAuthenticated]
         super().check_permissions(request)
-        user = self.get_object()
-        user.is_subscribed = request.user.subscription_set.filter(
-            user=request.user,
-            subscriptions=user.pk
-        ).exists()
-        user.recipes_count = user.recipe_set.all().count()
-        user.save()
-        return Response(UserResponseWithRecipesSerializer(user).data)
+        return super().retrieve(request,*args,**kwargs)
 
     def create(self, request):
         serializer = UserSerializer(data=request.data)
@@ -179,6 +172,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeResponseSerializer
     filter_backends = [rest_framework.DjangoFilterBackend]
     filterset_class = RecipeFilter
+
+    def list(self, request, *args, **kwargs):
+        if not self.request.query_params.get('tags'):
+            self.queryset = Recipe.objects.none()
+        return super().list(request,*args,**kwargs)
 
     def create(self, request, *args, **kwargs):
         serializer = RecipeResponsePostUpdateSerializer(
