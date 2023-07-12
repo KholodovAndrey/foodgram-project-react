@@ -3,6 +3,7 @@ import io
 from django.db.models import Value, Count, F, Sum
 from django.db.models.functions import Concat
 from django.http import HttpResponse
+
 from django_filters import rest_framework
 from rest_framework import viewsets, status, permissions
 from rest_framework.authtoken.models import Token
@@ -40,7 +41,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         self.permission_classes = [permissions.IsAuthenticated]
         super().check_permissions(request)
-        return super().retrieve(request,*args,**kwargs)
+        return super().retrieve(request, *args, **kwargs)
 
     def create(self, request):
         serializer = UserSerializer(data=request.data)
@@ -166,17 +167,17 @@ class IngredientViewSet(viewsets.ModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
-    queryset = Recipe.objects.all()
+    queryset = Recipe.objects.all().order_by('-id')
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
                           RecipePermission]
     serializer_class = RecipeResponseSerializer
     filter_backends = [rest_framework.DjangoFilterBackend]
     filterset_class = RecipeFilter
 
-    def list(self, request, *args, **kwargs):
-        if not self.request.query_params.get('tags'):
-            self.queryset = Recipe.objects.none()
-        return super().list(request,*args,**kwargs)
+    # def list(self, request, *args, **kwargs):
+    #     if not self.request.query_params.get('tags'):
+    #         self.queryset = Recipe.objects.none()
+    #     return super().list(request,*args,**kwargs)
 
     def create(self, request, *args, **kwargs):
         serializer = RecipeResponsePostUpdateSerializer(

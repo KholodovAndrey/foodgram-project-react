@@ -1,15 +1,12 @@
-import django_filters
 from django.db.models import Q
 
-from django_filters import rest_framework
-from django_filters import FilterSet
+from django_filters import rest_framework, CharFilter, FilterSet
 
 from .models import Ingredient, Recipe, Favourite, ShoppingCard
 
 
-class IngredientFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(field_name='name',
-                                     lookup_expr='icontains')
+class IngredientFilter(FilterSet):
+    name = CharFilter(field_name='name', lookup_expr='icontains')
 
     class Meta:
         model = Ingredient

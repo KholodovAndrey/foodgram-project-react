@@ -3,14 +3,12 @@ from django.db import models
 
 from users.models import User
 
+hex_validator = RegexValidator(regex=r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
+                               message='Введите корректное hex-значение.')
+
 
 class Tag(models.Model):
     """Модель тега."""
-
-    hex_validator = RegexValidator(
-        regex=r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
-        message='Введите корректное hex-значение.'
-    )
 
     name = models.CharField(max_length=201, blank=False, null=False,
                             unique=True, verbose_name='Имя')
@@ -81,7 +79,10 @@ class Recipe(models.Model):
                               verbose_name='Картинка')
     text = models.TextField(blank=False, null=False, verbose_name='Текст')
     cooking_time = models.IntegerField(blank=False, null=False,
-                                       verbose_name='Время готовки')
+                                       verbose_name='Время готовки',
+                                       validators=[
+                                           MinValueValidator(1)]
+                                       )
     ingredients = models.ManyToManyField(Ingredient,
                                          through=IngredientWithQuantity,
                                          related_name='ingredients',
