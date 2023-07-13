@@ -1,7 +1,7 @@
 # FOODGRAM
 ![example workflow](https://github.com/KholodovAndrey/foodgram-project-react/actions/workflows/foodgram_actions.yml/badge.svg)
 
-http://foodgram-diplom.ddns.net/
+http://foodgram-diplom.ddns.net  
 login: aholodov3@mail.ru  
 password: QAZwsx12  
 
