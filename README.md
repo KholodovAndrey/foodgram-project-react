@@ -3,8 +3,7 @@
 
 не знаю почему но он пытается запуститься через https
 
-http://foodgram-diplom.ddns.net  
-http://51.250.92.165  
+http://foodgram-diplom.ddns.net   
 login: aholodov3@mail.ru  
 password: QAZwsx12  
 
