@@ -1,8 +1,6 @@
 # FOODGRAM
 ![example workflow](https://github.com/KholodovAndrey/foodgram-project-react/actions/workflows/foodgram_actions.yml/badge.svg)
 
-не знаю почему но он пытается запуститься через https
-
 http://foodgram-diplom.ddns.net   
 login: aholodov3@mail.ru  
 password: QAZwsx12  
